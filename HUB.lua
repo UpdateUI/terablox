@@ -1,6 +1,6 @@
 --[[
-    Версия 3.2: "Project AURA" - Silent & Stable
-    Исправлена ошибка запуска, скрипт сделан более надежным. Все звуки удалены.
+    Версия 3.3: "Project AURA" - Исправленная версия
+    Все ошибки исправлены, код оптимизирован.
     Размещать в LocalScript внутри StarterPlayer > StarterPlayerScripts.
 ]]
 
@@ -8,6 +8,7 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 -- Игрок
 local player = Players.LocalPlayer
@@ -22,10 +23,11 @@ local TWEEN_FAST = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirectio
 local TWEEN_MEDIUM = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
 -- ОСНОВНОЙ ИНТЕРФЕЙС
-local screenGui = Instance.new("ScreenGui", playerGui)
+local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "AuraTeleportGui_Stable"
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
 
 -- ЭФФЕКТЫ ЧАСТИЦ ДЛЯ ФЛИНГА
 local flingParticles = Instance.new("ParticleEmitter")
@@ -41,13 +43,15 @@ flingParticles.Enabled = false
 
 -- ФУНКЦИЯ-ПОМОЩНИК ДЛЯ СОЗДАНИЯ СВЕЧЕНИЯ
 local function createGlow(parent, color)
-    local stroke = Instance.new("UIStroke", parent)
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = parent
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Thickness = 3
     stroke.LineJoinMode = Enum.LineJoinMode.Round
     stroke.Transparency = 1 -- Изначально невидимый
 
-    local gradient = Instance.new("UIGradient", stroke)
+    local gradient = Instance.new("UIGradient")
+    gradient.Parent = stroke
     gradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, color),
         ColorSequenceKeypoint.new(1, Color3.new(color.r * 0.7, color.g * 0.7, color.b * 0.7))
@@ -70,7 +74,12 @@ local function fadeFrame(frame, shouldBeVisible)
     
     for _, child in ipairs(frame:GetDescendants()) do
         if child:IsA("GuiObject") then
-            TweenService:Create(child, TWEEN_MEDIUM, {BackgroundTransparency = goalTransparency, TextTransparency = goalTransparency}):Play()
+            local goal = {}
+            if child:IsA("TextLabel") or child:IsA("TextBox") then
+                goal.TextTransparency = goalTransparency
+            end
+            goal.BackgroundTransparency = goalTransparency
+            TweenService:Create(child, TWEEN_MEDIUM, goal):Play()
         end
         if child:IsA("UIStroke") then
             TweenService:Create(child, TWEEN_MEDIUM, {Transparency = goalTransparency * 0.5}):Play()
@@ -86,7 +95,7 @@ end
 
 -- === ОБЩИЙ ДИЗАЙН ФРЕЙМОВ ===
 local function setupFrame(name, isVisibleOnStart)
-    local frame = Instance.new("Frame", screenGui)
+    local frame = Instance.new("Frame")
     frame.Name = name
     frame.Size = UDim2.new(0, 320, 0, 220)
     frame.Position = UDim2.new(0.5, -160, 0.5, -110)
@@ -97,14 +106,19 @@ local function setupFrame(name, isVisibleOnStart)
     frame.Active = true
     frame.ClipsDescendants = true
     frame.Visible = isVisibleOnStart
+    frame.Parent = screenGui
     
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = frame
     
-    local radialGradient = Instance.new("UIRadialGradient", frame)
+    local radialGradient = Instance.new("UIRadialGradient")
+    radialGradient.Parent = frame
     radialGradient.Color = ColorSequence.new(Color3.fromRGB(50, 50, 80), Color3.fromRGB(18, 18, 28))
     radialGradient.Transparency = NumberSequence.new(0.6, 1)
     
-    local stroke = Instance.new("UIStroke", frame)
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = frame
     stroke.Thickness = 1
     stroke.Color = Color3.fromRGB(150, 150, 255)
     stroke.Transparency = 1
@@ -115,7 +129,7 @@ end
 -- === ОКНО ВВОДА КЛЮЧА ===
 local keyFrame = setupFrame("KeyFrame", true)
 
-local title = Instance.new("TextLabel", keyFrame)
+local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 50)
 title.Position = UDim2.new(0, 0, 0, 20)
 title.Text = "AUTHENTICATION"
@@ -123,8 +137,9 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 20
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
+title.Parent = keyFrame
 
-local keyInput = Instance.new("TextBox", keyFrame)
+local keyInput = Instance.new("TextBox")
 keyInput.Size = UDim2.new(1, -60, 0, 40)
 keyInput.Position = UDim2.new(0.5, 0, 0, 80)
 keyInput.AnchorPoint = Vector2.new(0.5, 0)
@@ -135,9 +150,13 @@ keyInput.TextColor3 = Color3.fromRGB(220, 220, 220)
 keyInput.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
 keyInput.Font = Enum.Font.Gotham
 keyInput.TextSize = 16
-Instance.new("UICorner", keyInput).CornerRadius = UDim.new(0, 8)
+keyInput.Parent = keyFrame
 
-local verifyButton = Instance.new("TextButton", keyFrame)
+local keyCorner = Instance.new("UICorner")
+keyCorner.CornerRadius = UDim.new(0, 8)
+keyCorner.Parent = keyInput
+
+local verifyButton = Instance.new("TextButton")
 verifyButton.Size = UDim2.new(1, -60, 0, 45)
 verifyButton.Position = UDim2.new(0.5, 0, 1, -40)
 verifyButton.AnchorPoint = Vector2.new(0.5, 1)
@@ -146,34 +165,50 @@ verifyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 verifyButton.BackgroundColor3 = Color3.fromRGB(80, 80, 255)
 verifyButton.Font = Enum.Font.GothamBold
 verifyButton.TextSize = 18
-Instance.new("UICorner", verifyButton).CornerRadius = UDim.new(0, 8)
+verifyButton.Parent = keyFrame
+
+local verifyCorner = Instance.new("UICorner")
+verifyCorner.CornerRadius = UDim.new(0, 8)
+verifyCorner.Parent = verifyButton
+
 local verifyGlow = createGlow(verifyButton, Color3.fromRGB(180, 180, 255))
 
 -- === ГЛАВНОЕ ОКНО УПРАВЛЕНИЯ ===
 local controlFrame = setupFrame("ControlFrame", false)
 
-local setPositionButton = Instance.new("ImageButton", controlFrame)
+local setPositionButton = Instance.new("TextButton")
 setPositionButton.Size = UDim2.new(1, -60, 0, 50)
 setPositionButton.Position = UDim2.new(0.5, 0, 0, 30)
 setPositionButton.AnchorPoint = Vector2.new(0.5, 0)
 setPositionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-setPositionButton.Image = "rbxassetid://3926307971"
-setPositionButton.ImageColor3 = Color3.fromRGB(200, 200, 200)
-setPositionButton.ScaleType = Enum.ScaleType.Fit
-Instance.new("UICorner", setPositionButton).CornerRadius = UDim.new(0, 8)
+setPositionButton.Text = "SET POSITION"
+setPositionButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+setPositionButton.Font = Enum.Font.Gotham
+setPositionButton.TextSize = 16
+setPositionButton.Parent = controlFrame
 
-local goToBaseButton = Instance.new("ImageButton", controlFrame)
+local setCorner = Instance.new("UICorner")
+setCorner.CornerRadius = UDim.new(0, 8)
+setCorner.Parent = setPositionButton
+
+local goToBaseButton = Instance.new("TextButton")
 goToBaseButton.Size = UDim2.new(1, -60, 0, 50)
 goToBaseButton.Position = UDim2.new(0.5, 0, 0, 95)
 goToBaseButton.AnchorPoint = Vector2.new(0.5, 0)
 goToBaseButton.BackgroundColor3 = Color3.fromRGB(80, 80, 255)
-goToBaseButton.Image = "rbxassetid://3926305904"
-goToBaseButton.ImageColor3 = Color3.fromRGB(255, 255, 255)
-goToBaseButton.ScaleType = Enum.ScaleType.Fit
-Instance.new("UICorner", goToBaseButton).CornerRadius = UDim.new(0, 8)
+goToBaseButton.Text = "TELEPORT"
+goToBaseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+goToBaseButton.Font = Enum.Font.GothamBold
+goToBaseButton.TextSize = 16
+goToBaseButton.Parent = controlFrame
+
+local goCorner = Instance.new("UICorner")
+goCorner.CornerRadius = UDim.new(0, 8)
+goCorner.Parent = goToBaseButton
+
 local goGlow = createGlow(goToBaseButton, Color3.fromRGB(180, 180, 255))
 
-local positionLabel = Instance.new("TextLabel", controlFrame)
+local positionLabel = Instance.new("TextLabel")
 positionLabel.Size = UDim2.new(1, -40, 0, 30)
 positionLabel.Position = UDim2.new(0.5, 0, 1, -25)
 positionLabel.AnchorPoint = Vector2.new(0.5, 1)
@@ -182,6 +217,7 @@ positionLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
 positionLabel.BackgroundTransparency = 1
 positionLabel.Font = Enum.Font.Gotham
 positionLabel.TextSize = 14
+positionLabel.Parent = controlFrame
 
 -- === ЛОГИКА И АНИМАЦИИ ===
 
@@ -189,10 +225,14 @@ positionLabel.TextSize = 14
 local function setupButtonEvents(button)
     local glow = button:FindFirstChildOfClass("UIStroke")
     button.MouseEnter:Connect(function()
-        if glow then TweenService:Create(glow, TWEEN_FAST, {Transparency = 0.5}):Play() end
+        if glow then 
+            TweenService:Create(glow, TWEEN_FAST, {Transparency = 0.5}):Play() 
+        end
     end)
     button.MouseLeave:Connect(function()
-        if glow then TweenService:Create(glow, TWEEN_FAST, {Transparency = 1}):Play() end
+        if glow then 
+            TweenService:Create(glow, TWEEN_FAST, {Transparency = 1}):Play() 
+        end
     end)
 end
 
@@ -264,7 +304,7 @@ goToBaseButton.MouseButton1Click:Connect(function()
     rootPart.Velocity = Vector3.new(0,0,0)
     rootPart.RotVelocity = Vector3.new(0,0,0)
     
-    particlesClone:Emit(0)
+    particlesClone.Enabled = false
     task.wait(1)
     particlesClone:Destroy()
     
@@ -273,7 +313,12 @@ goToBaseButton.MouseButton1Click:Connect(function()
 end)
 
 -- Обновление текста с позицией
-RunService.RenderStepped:Connect(function()
+local lastUpdate = 0
+RunService.RenderStepped:Connect(function(deltaTime)
+    lastUpdate = lastUpdate + deltaTime
+    if lastUpdate < 0.2 then return end
+    lastUpdate = 0
+    
     if controlFrame.Visible and basePosition then
         positionLabel.Text = string.format("Target Locked: %.0f, %.0f, %.0f", basePosition.X, basePosition.Y, basePosition.Z)
         positionLabel.TextColor3 = Color3.fromRGB(150, 255, 150)
@@ -285,3 +330,15 @@ end)
 
 -- Запуск интерфейса
 fadeFrame(keyFrame, true)
+
+-- Добавляем горячую клавишу для показа/скрытия интерфейса
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        if controlFrame.Visible then
+            fadeFrame(controlFrame, false)
+        else
+            fadeFrame(controlFrame, true)
+        end
+    end
+end)
